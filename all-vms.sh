@@ -13,16 +13,15 @@ vm_list=$(qm list)
 # Extract VM IDs from the output (skipping the header)
 vm_ids=$(echo "$vm_list" | awk 'NR>1 {print $1}')
 
-# Iterate through each VM ID
-for vmid in $vm_ids; do
-    # Confirm deletion
-    read -p "Are you sure you want to delete VM ID $vmid? This action cannot be undone (y/n): " confirm
-    if [[ "$confirm" != "y" ]]; then
-        echo "VM ID $vmid deletion cancelled."
-        continue
-    fi
+# Ask for confirmation to delete all VMs
+read -p "Are you sure you want to delete ALL VMs? This action cannot be undone (y/n): " confirm_all
+if [[ "$confirm_all" != "y" ]]; then
+    echo "Aborting deletion of VMs."
+    exit 0
+fi
 
-    # Delete the VM
+# Iterate through each VM ID and delete
+for vmid in $vm_ids; do
     echo "Deleting VM ID $vmid..."
     qm destroy "$vmid" --purge --destroy-unreferenced-disks
 
@@ -33,3 +32,5 @@ for vmid in $vm_ids; do
         echo "Failed to delete VM ID $vmid. Please check the logs for more information."
     fi
 done
+
+echo "All specified VMs have been processed."
